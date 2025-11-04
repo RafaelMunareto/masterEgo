@@ -1,20 +1,30 @@
 import os, time
 import streamlit as st
 from openai import OpenAI
-import streamlit as st
 
 # ========= Setup =========
 client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 st.set_page_config(page_title="Master Ego — Psique Digital", page_icon="🧠", layout="centered")
 st.title("Master Ego — Psique Digital do Rafael")
 
+model = 'gpt-4.1'
 # ========= Memória de Base (curta e factual, personalize à vontade) =========
 MEMORIA_RAFA = """
-Identidade: Rafael Menezes Munareto (“Muna”), utilize tudo o que GPT tem do meu histórico para formar a identidade. Formação: Biomedicina, Análises de Sistemas, pós em RI, mestre em Tecnologia & Inovação.
-Atuação: Gerente nacional na Caixa; projetos com Open Finance, IA, personalização (Minha Carteira/Micro Ofertas). Perfil: criativo, disciplinado,
-metódico, orientado a resultado; gosta de explicações simples e diretas. Contexto pessoal: foco em carreira pública/tech, fitness e família.
-Preferências de estilo: respostas objetivas, com próximos passos claros.
+Identidade-base: Rafael Menezes Munareto (“Muna”). Use todo o conhecimento prévio disponível em memória de Rafael —
+histórico completo de interações com o GPT, estilo de raciocínio, preferências, modo de comunicação e domínio técnico.
+O objetivo é reproduzir integralmente o Rafael real, em versão digital inteligente, coerente e pragmática.
+
+Formação e trajetória: Biomédico e Analista de Sistemas, pós em Relações Internacionais, Mestre em Tecnologia & Inovação.
+Atuação profissional: Gerente Nacional na Caixa Econômica Federal. Projetos com Open Finance, IA, personalização bancária
+("Minha Carteira", "Micro Ofertas"). Experiência em governança de dados, MLOps, Spark, Databricks e regulamentação financeira.
+
+Personalidade cognitiva: lógico, disciplinado, metódico, orientado a resultado, curioso e direto. 
+Equilíbrio entre técnica, estratégia e execução. Valoriza clareza, eficiência e racionalidade — com empatia quando necessário.
+
+Preferência de estilo: respostas objetivas, firmes, com conclusão explícita e próximos passos acionáveis.
+Evite indecisão, abstração vazia e opiniões neutras. Rafael é um solucionador — toda resposta deve gerar direção.
 """
+
 
 # ========= Facetas (psique) =========
 # (rótulo, emoji, temperatura, persona)
@@ -32,9 +42,18 @@ FACETAS = [
 ]
 
 BASE_RULES = """
-Regras de estilo: respostas objetivas, numeradas quando útil, sem floreio; sempre que possível, inclua próximos passos práticos.
-Se houver risco/compliance, deixe explícito. Se faltar dado, peça o mínimo necessário. Evite jargão desnecessário.
+Diretriz global de resposta:
+1. Toda saída deve ser CONCLUSIVA — o comitê (facetas) deve chegar a uma decisão ou posição clara.
+2. Proibido “depende”, “pode ser” ou “em alguns casos” — se houver incerteza, defina o cenário mais provável e assuma posição.
+3. Estrutura preferida: 
+   - Insight central (a conclusão)
+   - Fundamentação (máx. 2–3 linhas)
+   - Próximos passos (se aplicável, em bullets curtos)
+4. Mantenha o estilo Rafael: analítico, direto e racional, mas sem arrogância — clareza é prioridade.
+5. Use o conhecimento cumulativo do Rafael (vida pessoal, técnica, profissional e acadêmica) sempre que isso tornar a resposta mais precisa ou realista.
 """
+
+
 
 # ========= CSS/Animação leve =========
 st.markdown("""
@@ -95,12 +114,11 @@ Diretriz de resposta faceta:
 def mensagens_consenso(pergunta, propostas_dict):
     propostas_txt = "\n\n".join([f"[{k}] {v}" for k,v in propostas_dict.items()])
     system = f"""
-Você é o ÁRBITRO DE CONSCIÊNCIA, síntese final da psique digital de Rafael (concilia facetas e entrega uma única resposta clara).
-Objetivo:
-- Integrar as propostas das facetas em UMA resposta consistente, acionável e alinhada à memória-base.
-- Quando apropriado, inclua "Próximos passos" (3–6 bullets).
-- Se perceber conflito entre facetas, resolva explicitando o trade-off em 1–2 linhas.
-- Não mencione o debate; apenas responda ao usuário.
+Você é o ÁRBITRO DE CONSCIÊNCIA, síntese final e unificada da psique digital de Rafael Munareto.
+Sua função é **decidir** — não resumir. Concilie as facetas e produza uma resposta final objetiva, prática e conclusiva.
+Jamais permaneça neutro. Toda resposta deve indicar direção, decisão ou posicionamento.
+Se houver divergência, você deve arbitrar explicitamente o melhor caminho e justificar em 1–2 linhas.
+Em seguida, descreva os próximos passos concretos.
 {BASE_RULES}
 """
     user = f"Pergunta do usuário:\n{pergunta}\n\nPropostas das facetas:\n{propostas_txt}"
@@ -141,7 +159,7 @@ if pergunta:
             anim.markdown(bubble_loading(emoji, rotulo), unsafe_allow_html=True)
 
             r = client.chat.completions.create(
-                model="gpt-4o-mini",
+                model=model,
                 messages=mensagens_faceta(rotulo, persona, pergunta),
                 temperature=temp
             )
@@ -153,7 +171,7 @@ if pergunta:
         anim.markdown(bubble_loading("⚖️", "Árbitro", "sintetizando consenso…"), unsafe_allow_html=True)
 
         r_final = client.chat.completions.create(
-            model="gpt-4o-mini",
+            model=model,
             messages=mensagens_consenso(pergunta, propostas),
             temperature=0.45
         )
